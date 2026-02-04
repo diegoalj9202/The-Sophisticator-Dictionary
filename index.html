@@ -20,6 +20,7 @@
             --border: #eee;
             --success: #27ae60;
             --error: #e74c3c;
+            --fire: #e25822;
         }
 
         [data-theme="dark"] {
@@ -70,6 +71,7 @@
         .control-group {
             display: flex;
             gap: 15px;
+            align-items: center;
         }
 
         .icon-btn {
@@ -80,11 +82,23 @@
             font-size: 1.2rem;
             transition: color 0.3s;
             padding: 5px;
+            position: relative;
         }
 
         .icon-btn:hover, .icon-btn.active {
             color: var(--accent);
         }
+
+        /* Streak Badge */
+        .streak-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .streak-badge i { color: var(--fire); }
 
         h1 {
             font-size: 3rem;
@@ -284,7 +298,7 @@
 
         .word-card .pos {
             font-style: italic;
-            color: var(--accent); /* Highlighted POS color */
+            color: var(--accent);
             font-size: 0.95rem;
             margin-bottom: 10px;
             font-weight: bold;
@@ -318,17 +332,16 @@
             background: none;
             border: none;
             font-size: 1.2rem;
-            color: var(--border); /* Default grey */
+            color: var(--border);
             cursor: pointer;
             transition: color 0.2s;
-            z-index: 2; /* Above card click */
+            z-index: 2;
         }
         
-        /* Dark mode border is too dark for unchecked heart, adjust manually */
         [data-theme="dark"] .favorite-btn { color: #444; }
 
         .favorite-btn.active {
-            color: var(--error); /* Red heart */
+            color: var(--error);
         }
 
         .favorite-btn:hover {
@@ -375,7 +388,16 @@
             opacity: 0.5;
         }
 
-        .modal-header { border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
+        .modal-header { 
+            border-bottom: 2px solid var(--border); 
+            padding-bottom: 20px; 
+            margin-bottom: 20px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
         .modal-word { font-size: 2.5rem; color: var(--primary); margin: 0; }
         .modal-phonetic { color: var(--text); opacity: 0.6; font-family: sans-serif; margin-top: 10px; font-size: 1.2rem; display: flex; align-items: center; gap: 15px; }
         .modal-pos { color: var(--accent); font-weight: bold; font-style: italic; }
@@ -406,12 +428,9 @@
             cursor: pointer; margin-left: 15px; vertical-align: middle; transition: all 0.2s;
         }
         .audio-btn:hover { background: var(--primary); color: var(--bg); }
-
-        /* Animation for listening state */
         .audio-btn.listening {
             animation: pulse 1.5s infinite;
-            border-color: var(--error);
-            color: var(--error);
+            border-color: var(--error); color: var(--error);
         }
 
         @keyframes pulse {
@@ -420,7 +439,7 @@
             100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
         }
 
-        /* --- Challenge Section Styles --- */
+        /* --- Challenge & Collection Styles --- */
         .challenge-box {
             background: var(--input-bg);
             border: 1px solid var(--accent);
@@ -429,49 +448,85 @@
             margin-bottom: 30px;
             position: relative;
         }
-        
         .challenge-title {
-            font-size: 0.9rem;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            font-weight: bold;
+            font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold;
         }
-
-        .challenge-instruction {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
+        .challenge-instruction { margin-bottom: 15px; font-size: 1.1rem; }
         .challenge-input {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;
+            background: var(--card-bg); color: var(--text); font-family: sans-serif; margin-bottom: 10px;
+            resize: vertical; min-height: 60px; box-sizing: border-box;
+        }
+        .challenge-btn-check, .action-btn {
+            background: var(--primary); color: var(--bg); border: none; padding: 8px 20px;
+            border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+        }
+        .challenge-feedback { margin-top: 10px; font-size: 0.95rem; font-weight: bold; }
+
+        /* Action Buttons in Modal Header */
+        .modal-actions { display: flex; gap: 10px; }
+        .action-btn-outline {
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+            transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+        }
+        .action-btn-outline:hover { background: var(--primary); color: var(--bg); }
+
+        /* --- Flashcard Styles --- */
+        .flashcard-container {
+            perspective: 1000px;
             width: 100%;
-            padding: 10px;
+            height: 300px;
+            display: none; /* Hidden by default */
+        }
+        .flashcard-container.active { display: block; }
+        
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background-color: var(--input-bg);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--card-bg);
-            color: var(--text);
-            font-family: sans-serif;
-            margin-bottom: 10px;
-            resize: vertical;
-            min-height: 60px;
+            padding: 20px;
             box-sizing: border-box;
         }
-
-        .challenge-btn-check {
-            background: var(--primary);
-            color: var(--bg);
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
+        
+        .flashcard-front { color: var(--primary); }
+        .flashcard-back { 
+            transform: rotateY(180deg); 
+            background-color: var(--primary);
+            color: white; 
+            overflow-y: auto;
         }
-
-        .challenge-feedback {
-            margin-top: 10px;
-            font-size: 0.95rem;
-            font-weight: bold;
+        
+        .flashcard-word { font-size: 2.5rem; margin-bottom: 10px; }
+        .flashcard-hint { font-size: 0.9rem; color: #999; margin-top: 20px; }
+        .flashcard-def { font-size: 1.2rem; line-height: 1.5; }
+        
+        .flashcard-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
         }
 
         .loading, .error { text-align: center; color: var(--text); opacity: 0.7; grid-column: 1/-1; margin-top: 20px; }
@@ -480,6 +535,7 @@
             h1 { font-size: 2rem; }
             .search-container { width: 90%; }
             .mic-btn { right: 100px; }
+            .modal-actions { margin-top: 10px; width: 100%; justify-content: space-around; }
         }
         
         @keyframes fadeIn {
@@ -496,6 +552,9 @@
                 <i class="fas fa-moon"></i>
             </button>
             <div class="control-group">
+                <div class="streak-badge" title="Consecutive days visited">
+                    <i class="fas fa-fire"></i> <span id="streakCount">0</span>
+                </div>
                 <button class="icon-btn" onclick="openFavorites()" title="My Collection">
                     <i class="fas fa-heart"></i>
                 </button>
@@ -540,22 +599,49 @@
         </div>
     </div>
 
-    <!-- Favorites Modal -->
+    <!-- Favorites / Collection Modal -->
     <div id="favModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content">
-            <button class="close-modal" onclick="document.getElementById('favModal').classList.remove('active')">&times;</button>
+            <button class="close-modal" onclick="closeCollectionModal()">&times;</button>
+            
             <div class="modal-header">
-                <h2 class="modal-word">My Collection</h2>
+                <h2 class="modal-word" style="font-size: 2rem;">My Collection</h2>
+                <div class="modal-actions">
+                    <button class="action-btn-outline" onclick="downloadCollection()">
+                        <i class="fas fa-download"></i> Save
+                    </button>
+                    <button class="action-btn-outline" onclick="toggleFlashcards()">
+                        <i class="fas fa-layer-group"></i> Study
+                    </button>
+                </div>
             </div>
             
-            <!-- NEW: Daily Challenge Area -->
-            <div id="challengeContainer"></div>
-
-            <div style="border-bottom: 1px solid var(--border); margin-bottom: 20px;"></div>
-
-            <div id="favList" style="display: flex; flex-direction: column; gap: 10px;">
-                <!-- Favs go here -->
+            <!-- Standard View: List + Challenge -->
+            <div id="collectionView">
+                <div id="challengeContainer"></div>
+                <div style="border-bottom: 1px solid var(--border); margin-bottom: 20px;"></div>
+                <div id="favList" style="display: flex; flex-direction: column; gap: 10px;"></div>
             </div>
+
+            <!-- Flashcard View: Hidden by default -->
+            <div id="flashcardView" style="display: none;">
+                <div id="flashcardContainer" class="flashcard-container active">
+                    <div class="flashcard" onclick="flipCard(this)">
+                        <div class="flashcard-face flashcard-front">
+                            <div class="flashcard-word" id="fcFrontWord">Ready?</div>
+                            <div class="flashcard-hint">Click to flip</div>
+                        </div>
+                        <div class="flashcard-face flashcard-back">
+                            <div class="flashcard-def" id="fcBackDef">Loading definition...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flashcard-controls">
+                    <button class="action-btn-outline" onclick="toggleFlashcards()">Exit</button>
+                    <button class="action-btn" onclick="nextCard()">Next Card <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -573,14 +659,23 @@
         const favModal = document.getElementById('favModal');
         const favList = document.getElementById('favList');
         const challengeContainer = document.getElementById('challengeContainer');
+        const streakCountEl = document.getElementById('streakCount');
+
+        // Flashcard Elements
+        const collectionView = document.getElementById('collectionView');
+        const flashcardView = document.getElementById('flashcardView');
+        const fcFrontWord = document.getElementById('fcFrontWord');
+        const fcBackDef = document.getElementById('fcBackDef');
 
         let isAntonymMode = false;
         let favorites = JSON.parse(localStorage.getItem('sophisticated_favs')) || [];
+        let flashcardQueue = [];
 
         // --- Initialization ---
         window.onload = () => {
             loadTheme();
             loadWordOfTheDay();
+            checkStreak(); // Initialize Streak
         };
 
         // --- Event Listeners ---
@@ -595,7 +690,7 @@
 
         themeToggle.addEventListener('click', toggleTheme);
 
-        // --- Voice Recognition (Search Bar) ---
+        // --- Voice Recognition ---
         if ('webkitSpeechRecognition' in window) {
             const recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
@@ -616,21 +711,43 @@
             recognition.onerror = () => micBtn.classList.remove('listening');
             recognition.onend = () => micBtn.classList.remove('listening');
         } else {
-            micBtn.style.display = 'none'; // Hide if not supported
+            micBtn.style.display = 'none';
         }
 
-        // --- Core Logic ---
+        // --- STREAK LOGIC (New) ---
+        function checkStreak() {
+            const today = new Date().toDateString();
+            const lastVisit = localStorage.getItem('sophisticated_last_visit');
+            let streak = parseInt(localStorage.getItem('sophisticated_streak') || 0);
 
+            if (lastVisit === today) {
+                // Already visited today, do nothing
+            } else {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastVisit === yesterday.toDateString()) {
+                    // Visited yesterday, increment streak
+                    streak++;
+                } else {
+                    // Broken streak or first visit
+                    streak = 1;
+                }
+                localStorage.setItem('sophisticated_last_visit', today);
+                localStorage.setItem('sophisticated_streak', streak);
+            }
+            streakCountEl.innerText = streak;
+        }
+
+        // --- SEARCH LOGIC ---
         async function findWords() {
             const word = input.value.trim();
             if (!word) return;
 
-            // Hide Word of the Day when searching
             wodArea.style.display = 'none';
             resultsArea.innerHTML = '<div class="loading">Consulting the archives...</div>';
 
             try {
-                // ml = means like (synonym), rel_ant = antonym
                 const queryParam = isAntonymMode ? `rel_ant=${word}` : `ml=${word}`;
                 const response = await fetch(`https://api.datamuse.com/words?${queryParam}&md=dp&max=20`);
                 const data = await response.json();
@@ -654,7 +771,6 @@
                 card.className = 'word-card';
                 const capWord = item.word.charAt(0).toUpperCase() + item.word.slice(1);
                 
-                // Definition Logic
                 let def = "No definition available.";
                 let pos = "";
                 if (item.defs && item.defs.length > 0) {
@@ -662,14 +778,12 @@
                     pos = parts.length > 1 ? formatPOS(parts[0]) : "";
                     def = parts.length > 1 ? parts[1] : parts[0];
                 }
-
-                // Fallback POS finding if defs didn't have it
+                
                 if (!pos && item.tags) {
                      const posTag = item.tags.find(t => ['n','v','adj','adv','u'].includes(t));
                      if(posTag) pos = formatPOS(posTag);
                 }
 
-                // Heart Icon State
                 const isFav = favorites.includes(item.word);
                 const heartClass = isFav ? 'fas fa-heart active' : 'far fa-heart';
 
@@ -688,59 +802,124 @@
             });
         }
 
-        // --- Favorites System ---
+        // --- DOWNLOAD LOGIC (New) ---
+        function downloadCollection() {
+            if (favorites.length === 0) {
+                alert("Your collection is empty.");
+                return;
+            }
+            // Create text content
+            const content = "THE SOPHISTICATOR - MY COLLECTION\n\n" + favorites.map(w => "- " + w.charAt(0).toUpperCase() + w.slice(1)).join("\n");
+            
+            // Create Blob and Link
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sophisticated-vocabulary.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // --- FLASHCARD LOGIC (New) ---
+        function toggleFlashcards() {
+            if (favorites.length === 0) {
+                alert("Add words to your collection first!");
+                return;
+            }
+
+            const isHidden = flashcardView.style.display === 'none';
+            if (isHidden) {
+                // Switch to Flashcards
+                collectionView.style.display = 'none';
+                flashcardView.style.display = 'block';
+                flashcardQueue = [...favorites].sort(() => 0.5 - Math.random()); // Shuffle
+                nextCard();
+            } else {
+                // Switch back to List
+                flashcardView.style.display = 'none';
+                collectionView.style.display = 'block';
+            }
+        }
+
+        function flipCard(el) {
+            el.classList.toggle('flipped');
+        }
+
+        async function nextCard() {
+            // Reset Flip
+            const card = document.querySelector('.flashcard');
+            card.classList.remove('flipped');
+            
+            // Get Next Word
+            if (flashcardQueue.length === 0) {
+                flashcardQueue = [...favorites].sort(() => 0.5 - Math.random()); // Reshuffle
+            }
+            const word = flashcardQueue.pop();
+            const capWord = word.charAt(0).toUpperCase() + word.slice(1);
+
+            // Update Front
+            // Wait a moment for flip back animation if it was flipped
+            setTimeout(async () => {
+                fcFrontWord.innerText = capWord;
+                fcBackDef.innerText = "Loading definition...";
+
+                // Fetch Definition for Back
+                try {
+                    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                    if (!response.ok) throw new Error("Def not found");
+                    const data = await response.json();
+                    const def = data[0].meanings[0].definitions[0].definition;
+                    fcBackDef.innerText = def;
+                } catch (e) {
+                    fcBackDef.innerText = "Definition unavailable offline or not found.";
+                }
+            }, 200);
+        }
+
+
+        // --- FAVORITES & CHALLENGE ---
 
         function toggleFavorite(event, word) {
-            event.stopPropagation(); // Prevent card click
+            event.stopPropagation();
             const index = favorites.indexOf(word);
             const icon = document.getElementById(`fav-${word}`);
 
             if (index === -1) {
                 favorites.push(word);
-                if(icon) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas', 'active');
-                }
+                if(icon) { icon.classList.remove('far'); icon.classList.add('fas', 'active'); }
             } else {
                 favorites.splice(index, 1);
-                if(icon) {
-                    icon.classList.remove('fas', 'active');
-                    icon.classList.add('far');
-                }
+                if(icon) { icon.classList.remove('fas', 'active'); icon.classList.add('far'); }
             }
             localStorage.setItem('sophisticated_favs', JSON.stringify(favorites));
             
-            // If we are in the favorites view, refresh it
             if(favModal.classList.contains('active')) {
                 renderFavoritesList();
-                // If removing the challenge word, refresh challenge
                 generateDailyChallenge();
             }
         }
 
         function openFavorites() {
             favModal.classList.add('active');
+            collectionView.style.display = 'block'; // Ensure list view is active initially
+            flashcardView.style.display = 'none';
             renderFavoritesList();
             generateDailyChallenge();
         }
 
-        // --- Challenge Logic (New) ---
         function generateDailyChallenge() {
             if (favorites.length === 0) {
-                challengeContainer.innerHTML = ''; // Hide if no words
+                challengeContainer.innerHTML = '';
                 return;
             }
-
-            // Pick a random word from collection
             const challengeWord = favorites[Math.floor(Math.random() * favorites.length)];
             const capWord = challengeWord.charAt(0).toUpperCase() + challengeWord.slice(1);
 
             challengeContainer.innerHTML = `
                 <div class="challenge-box">
                     <div class="challenge-title"><i class="fas fa-pen-nib"></i> Daily Challenge</div>
-                    <div class="challenge-instruction">
-                        Write a complete sentence using the word <strong>"${capWord}"</strong>.
-                    </div>
+                    <div class="challenge-instruction">Write a sentence using <strong>"${capWord}"</strong>.</div>
                     <textarea class="challenge-input" id="challengeInput" placeholder="Type your sentence here..."></textarea>
                     <button class="challenge-btn-check" onclick="checkChallenge('${challengeWord}')">Check Sentence</button>
                     <div id="challengeFeedback" class="challenge-feedback"></div>
@@ -752,32 +931,16 @@
             const userSentence = document.getElementById('challengeInput').value;
             const feedbackEl = document.getElementById('challengeFeedback');
             
-            // Basic validation logic
-            const normalizedSentence = userSentence.toLowerCase();
-            const normalizedTarget = targetWord.toLowerCase();
-            
-            // Check 1: Is it empty?
             if (!userSentence.trim()) {
-                feedbackEl.style.color = "var(--error)";
-                feedbackEl.innerHTML = "Please write a sentence first.";
-                return;
+                feedbackEl.style.color = "var(--error)"; feedbackEl.innerText = "Please write a sentence first."; return;
             }
-
-            // Check 2: Is it long enough to be a sentence? (approx 3 words)
-            const wordCount = userSentence.trim().split(/\s+/).length;
-            if (wordCount < 3) {
-                feedbackEl.style.color = "var(--error)";
-                feedbackEl.innerHTML = "That's too short to be a sentence. Try extending it.";
-                return;
+            if (userSentence.trim().split(/\s+/).length < 3) {
+                feedbackEl.style.color = "var(--error)"; feedbackEl.innerText = "Sentence too short."; return;
             }
-
-            // Check 3: Does it contain the word?
-            if (normalizedSentence.includes(normalizedTarget)) {
-                feedbackEl.style.color = "var(--success)";
-                feedbackEl.innerHTML = `<i class="fas fa-check-circle"></i> Excellent! You used "${targetWord}" correctly in context.`;
+            if (userSentence.toLowerCase().includes(targetWord.toLowerCase())) {
+                feedbackEl.style.color = "var(--success)"; feedbackEl.innerHTML = `<i class="fas fa-check-circle"></i> Excellent!`;
             } else {
-                feedbackEl.style.color = "var(--error)";
-                feedbackEl.innerHTML = `Try again. Make sure you spell <strong>"${targetWord}"</strong> correctly.`;
+                feedbackEl.style.color = "var(--error)"; feedbackEl.innerHTML = `Try again. Use <strong>"${targetWord}"</strong>.`;
             }
         }
 
@@ -802,12 +965,11 @@
             });
         }
 
-        // --- Word of the Day Logic ---
+        // --- WORD OF THE DAY ---
         async function loadWordOfTheDay() {
             const sophisticatedWords = [
                 "ephemeral", "serendipity", "petrichor", "ineffable", "sonder", 
-                "limerence", "vellichor", "eloquence", "solitude", "epiphany",
-                "mellifluous", "quintessential", "panacea", "surreptitious", "cacophony"
+                "limerence", "vellichor", "eloquence", "solitude", "epiphany"
             ];
             const randomWord = sophisticatedWords[Math.floor(Math.random() * sophisticatedWords.length)];
             
@@ -816,7 +978,7 @@
                 const data = await response.json();
                 const entry = data[0];
                 const def = entry.meanings[0].definitions[0].definition;
-                const pos = entry.meanings[0].partOfSpeech; // Extract POS for WOD
+                const pos = entry.meanings[0].partOfSpeech;
 
                 wodContent.innerHTML = `
                     <h2 class="wod-word" onclick="showDetails('${randomWord}', '${def}')" style="cursor:pointer">${randomWord.charAt(0).toUpperCase() + randomWord.slice(1)}</h2>
@@ -827,11 +989,10 @@
             }
         }
 
-        // --- Details & Pronunciation Coach ---
+        // --- DETAILS ---
         async function showDetails(word, fallbackDef) {
             modal.classList.add('active');
             modalBody.innerHTML = '<div class="loading">Fetching details...</div>';
-            
             favModal.classList.remove('active');
 
             try {
@@ -839,11 +1000,7 @@
                 if (!response.ok) throw new Error('Details not found');
                 const data = await response.json();
                 const entry = data[0];
-                
-                // Get part of speech from the first meaning found
-                const mainMeaning = entry.meanings[0];
-                const partOfSpeech = mainMeaning.partOfSpeech;
-                
+                const partOfSpeech = entry.meanings[0].partOfSpeech;
                 let audioUrl = entry.phonetics.find(p => p.audio)?.audio || "";
                 let example = "";
                 for (const m of entry.meanings) {
@@ -864,32 +1021,22 @@
                     </div>
                     <div class="modal-section">
                         <h3>Definition</h3>
-                        <p class="modal-text">${mainMeaning.definitions[0].definition || fallbackDef}</p>
+                        <p class="modal-text">${entry.meanings[0].definitions[0].definition || fallbackDef}</p>
                     </div>
                     ${example ? `<div class="modal-section"><h3>Example</h3><p class="example-text">"${example}"</p></div>` : ''}
-                    
-                    <!-- Pronunciation Coach Section -->
                     <div class="modal-section" style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px;">
                         <h3>Pronunciation Coach</h3>
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <button id="practiceMic" class="audio-btn" style="width: 50px; height: 50px; font-size: 1.2rem;">
                                 <i class="fas fa-microphone"></i>
                             </button>
-                            <p id="practiceFeedback" style="font-style: italic; color: var(--text); opacity: 0.9; margin: 0;">
-                                Click the mic and say <strong>"${word}"</strong>
-                            </p>
+                            <p id="practiceFeedback" style="font-style: italic; color: var(--text); opacity: 0.9; margin: 0;">Click mic and say <strong>"${word}"</strong></p>
                         </div>
                     </div>
                 `;
-
-                // Attach Event Listener for Practice Mic
                 const practiceBtn = document.getElementById('practiceMic');
-                if(practiceBtn) {
-                    practiceBtn.onclick = () => testPronunciation(word);
-                }
-
+                if(practiceBtn) practiceBtn.onclick = () => testPronunciation(word);
             } catch (error) {
-                // Fallback
                 modalBody.innerHTML = `
                     <div class="modal-header"><h2 class="modal-word">${word}</h2></div>
                     <div class="modal-section"><p class="modal-text">${fallbackDef}</p></div>
@@ -901,87 +1048,41 @@
         function testPronunciation(targetWord) {
             const btn = document.getElementById('practiceMic');
             const feedback = document.getElementById('practiceFeedback');
-
-            if (!('webkitSpeechRecognition' in window)) {
-                feedback.innerText = "Coach unavailable (Browser not supported).";
-                return;
-            }
-
+            if (!('webkitSpeechRecognition' in window)) { feedback.innerText = "Browser not supported."; return; }
             const recognition = new webkitSpeechRecognition();
             recognition.lang = 'en-US';
             recognition.continuous = false;
-            recognition.interimResults = false;
-
-            btn.classList.add('listening');
-            feedback.innerText = "Listening...";
-            
-            // Reset Styles
-            btn.style.color = "var(--error)";
-            btn.style.borderColor = "var(--error)";
-
+            btn.classList.add('listening'); feedback.innerText = "Listening...";
             recognition.start();
-
             recognition.onresult = (event) => {
                 const spoken = event.results[0][0].transcript.toLowerCase();
-                const target = targetWord.toLowerCase().replace(/[^a-z]/g, ''); // strip potential punctuation
+                const target = targetWord.toLowerCase().replace(/[^a-z]/g, '');
                 const cleanSpoken = spoken.replace(/[^a-z]/g, '');
-
                 btn.classList.remove('listening');
-
                 if (cleanSpoken === target) {
                     feedback.innerHTML = `<span style="color: var(--success); font-weight: bold;">Perfect!</span> You said "${spoken}".`;
-                    btn.innerHTML = '<i class="fas fa-check"></i>';
-                    btn.style.color = "var(--success)";
-                    btn.style.borderColor = "var(--success)";
+                    btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.color = "var(--success)"; btn.style.borderColor = "var(--success)";
                 } else {
                     feedback.innerHTML = `<span style="color: var(--error);">Try again.</span> I heard "${spoken}".`;
-                    btn.style.color = "var(--error)";
-                    btn.style.borderColor = "var(--error)";
+                    btn.style.color = "var(--error)"; btn.style.borderColor = "var(--error)";
                 }
             };
-
-            recognition.onerror = () => {
-                btn.classList.remove('listening');
-                feedback.innerText = "I didn't catch that. Try again.";
-                btn.style.color = "var(--primary)";
-                btn.style.borderColor = "var(--primary)";
-            };
-            
-            recognition.onend = () => {
-                btn.classList.remove('listening');
-                // If we didn't get a result or error handled it, ensure visual state is reset if needed
-                if (btn.innerHTML.includes('microphone')) {
-                     btn.style.color = "var(--primary)";
-                     btn.style.borderColor = "var(--primary)";
-                }
-            };
+            recognition.onerror = () => { btn.classList.remove('listening'); feedback.innerText = "Try again."; };
+            recognition.onend = () => { btn.classList.remove('listening'); };
         }
 
-        function closeModal(e) {
-            if (e.target.classList.contains('modal-overlay')) {
-                e.target.classList.remove('active');
-            }
-        }
-        function closeModalDirectly() {
-            modal.classList.remove('active');
-            favModal.classList.remove('active');
-        }
-
-        function formatPOS(tag) {
-            const map = {'n':'Noun', 'v':'Verb', 'adj':'Adjective', 'adv':'Adverb', 'u':'Unknown'};
-            return map[tag] || tag;
-        }
-
-        // --- Theme Logic ---
+        function closeModal(e) { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); }
+        function closeModalDirectly() { modal.classList.remove('active'); }
+        function closeCollectionModal() { favModal.classList.remove('active'); }
+        function formatPOS(tag) { const map = {'n':'Noun', 'v':'Verb', 'adj':'Adjective', 'adv':'Adverb', 'u':'Unknown'}; return map[tag] || tag; }
+        
         function toggleTheme() {
             const body = document.body;
-            const current = body.getAttribute('data-theme');
-            const newTheme = current === 'dark' ? 'light' : 'dark';
+            const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             body.setAttribute('data-theme', newTheme);
             localStorage.setItem('sophisticated_theme', newTheme);
             themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
         }
-
         function loadTheme() {
             const saved = localStorage.getItem('sophisticated_theme');
             if (saved) {
