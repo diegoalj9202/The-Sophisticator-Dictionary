@@ -419,6 +419,60 @@
             100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
         }
 
+        /* --- Challenge Section Styles --- */
+        .challenge-box {
+            background: var(--input-bg);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .challenge-title {
+            font-size: 0.9rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .challenge-instruction {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .challenge-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-family: sans-serif;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 60px;
+            box-sizing: border-box;
+        }
+
+        .challenge-btn-check {
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .challenge-feedback {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
         .loading, .error { text-align: center; color: var(--text); opacity: 0.7; grid-column: 1/-1; margin-top: 20px; }
 
         @media (max-width: 600px) {
@@ -485,13 +539,19 @@
         </div>
     </div>
 
-    <!-- Favorites Modal (Reusing structure for simplicity) -->
+    <!-- Favorites Modal -->
     <div id="favModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content">
             <button class="close-modal" onclick="document.getElementById('favModal').classList.remove('active')">&times;</button>
             <div class="modal-header">
                 <h2 class="modal-word">My Collection</h2>
             </div>
+            
+            <!-- NEW: Daily Challenge Area -->
+            <div id="challengeContainer"></div>
+
+            <div style="border-bottom: 1px solid var(--border); margin-bottom: 20px;"></div>
+
             <div id="favList" style="display: flex; flex-direction: column; gap: 10px;">
                 <!-- Favs go here -->
             </div>
@@ -511,6 +571,7 @@
         const wodContent = document.getElementById('wodContent');
         const favModal = document.getElementById('favModal');
         const favList = document.getElementById('favList');
+        const challengeContainer = document.getElementById('challengeContainer');
 
         let isAntonymMode = false;
         let favorites = JSON.parse(localStorage.getItem('sophisticated_favs')) || [];
@@ -645,23 +706,83 @@
             // If we are in the favorites view, refresh it
             if(favModal.classList.contains('active')) {
                 renderFavoritesList();
+                // If removing the challenge word, refresh challenge
+                generateDailyChallenge();
             }
         }
 
         function openFavorites() {
             favModal.classList.add('active');
             renderFavoritesList();
+            generateDailyChallenge();
+        }
+
+        // --- Challenge Logic (New) ---
+        function generateDailyChallenge() {
+            if (favorites.length === 0) {
+                challengeContainer.innerHTML = ''; // Hide if no words
+                return;
+            }
+
+            // Pick a random word from collection
+            const challengeWord = favorites[Math.floor(Math.random() * favorites.length)];
+            const capWord = challengeWord.charAt(0).toUpperCase() + challengeWord.slice(1);
+
+            challengeContainer.innerHTML = `
+                <div class="challenge-box">
+                    <div class="challenge-title"><i class="fas fa-pen-nib"></i> Daily Challenge</div>
+                    <div class="challenge-instruction">
+                        Write a complete sentence using the word <strong>"${capWord}"</strong>.
+                    </div>
+                    <textarea class="challenge-input" id="challengeInput" placeholder="Type your sentence here..."></textarea>
+                    <button class="challenge-btn-check" onclick="checkChallenge('${challengeWord}')">Check Sentence</button>
+                    <div id="challengeFeedback" class="challenge-feedback"></div>
+                </div>
+            `;
+        }
+
+        function checkChallenge(targetWord) {
+            const userSentence = document.getElementById('challengeInput').value;
+            const feedbackEl = document.getElementById('challengeFeedback');
+            
+            // Basic validation logic
+            const normalizedSentence = userSentence.toLowerCase();
+            const normalizedTarget = targetWord.toLowerCase();
+            
+            // Check 1: Is it empty?
+            if (!userSentence.trim()) {
+                feedbackEl.style.color = "var(--error)";
+                feedbackEl.innerHTML = "Please write a sentence first.";
+                return;
+            }
+
+            // Check 2: Is it long enough to be a sentence? (approx 3 words)
+            const wordCount = userSentence.trim().split(/\s+/).length;
+            if (wordCount < 3) {
+                feedbackEl.style.color = "var(--error)";
+                feedbackEl.innerHTML = "That's too short to be a sentence. Try extending it.";
+                return;
+            }
+
+            // Check 3: Does it contain the word?
+            if (normalizedSentence.includes(normalizedTarget)) {
+                feedbackEl.style.color = "var(--success)";
+                feedbackEl.innerHTML = `<i class="fas fa-check-circle"></i> Excellent! You used "${targetWord}" correctly in context.`;
+            } else {
+                feedbackEl.style.color = "var(--error)";
+                feedbackEl.innerHTML = `Try again. Make sure you spell <strong>"${targetWord}"</strong> correctly.`;
+            }
         }
 
         function renderFavoritesList() {
             favList.innerHTML = '';
             if (favorites.length === 0) {
-                favList.innerHTML = '<div style="text-align:center; opacity:0.6">Your collection is empty.</div>';
+                favList.innerHTML = '<div style="text-align:center; opacity:0.6">Your collection is empty. Heart some words to start!</div>';
                 return;
             }
             favorites.forEach(word => {
                 const div = document.createElement('div');
-                div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--input-bg); border-radius:8px;";
+                div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--input-bg); border-radius:8px; border: 1px solid var(--border);";
                 div.innerHTML = `
                     <span style="font-size:1.2rem; cursor:pointer;" onclick="closeModalDirectly(); showDetails('${word}', '')">
                         ${word.charAt(0).toUpperCase() + word.slice(1)}
