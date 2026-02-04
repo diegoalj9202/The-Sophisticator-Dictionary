@@ -171,7 +171,8 @@
 
         input[type="text"] {
             width: 100%;
-            padding: 20px 50px 20px 25px; /* Extra padding right for mic */
+            /* Fix: Increased padding-right significantly to 150px to prevent text overlap with buttons */
+            padding: 20px 150px 20px 25px; 
             font-size: 1.2rem;
             border: 2px solid var(--border);
             border-radius: 50px;
@@ -181,6 +182,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             font-family: 'Helvetica Neue', sans-serif;
+            box-sizing: border-box; /* Ensure padding doesn't break width */
         }
 
         input[type="text"]:focus {
@@ -190,7 +192,8 @@
 
         .mic-btn {
             position: absolute;
-            right: 130px; /* Positioned before search button */
+            /* Fix: Adjusted position to sit nicely next to search button */
+            right: 125px; 
             top: 50%;
             transform: translateY(-50%);
             background: none;
@@ -200,6 +203,7 @@
             opacity: 0.5;
             cursor: pointer;
             transition: 0.2s;
+            z-index: 2;
         }
 
         .mic-btn:hover, .mic-btn.listening {
@@ -221,6 +225,7 @@
             font-size: 1rem;
             transition: background 0.3s;
             font-weight: bold;
+            z-index: 2;
         }
 
         button.search-btn:hover {
@@ -534,8 +539,22 @@
         @media (max-width: 600px) {
             h1 { font-size: 2rem; }
             .search-container { width: 90%; }
-            .mic-btn { right: 100px; }
             .modal-actions { margin-top: 10px; width: 100%; justify-content: space-around; }
+
+            /* Fix for Search Bar Overlap on Mobile */
+            /* Ensure text cuts off way before buttons */
+            input[type="text"] {
+                padding-right: 120px; 
+            }
+            /* Make button more compact */
+            button.search-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            /* Move mic slightly to the right to fit the smaller button */
+            .mic-btn {
+                right: 95px;
+            }
         }
         
         @keyframes fadeIn {
