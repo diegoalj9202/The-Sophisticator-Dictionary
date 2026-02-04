@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Sophisticator</title>
+    <!-- Add FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            /* Light Theme (Default) */
+            --primary: #2c3e50;
+            --accent: #d4af37; /* Gold */
+            --bg: #fdfbf7;     /* Off-white paper */
+            --text: #333;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --modal-bg: rgba(0, 0, 0, 0.6);
+            --shadow: 0 10px 20px rgba(0,0,0,0.08);
+            --border: #eee;
+            --success: #27ae60;
+            --error: #e74c3c;
+        }
+
+        [data-theme="dark"] {
+            /* Noir Theme */
+            --primary: #d4af37; /* Gold becomes primary text */
+            --accent: #a0a0a0;  /* Silver accent */
+            --bg: #121212;      /* Deep black */
+            --text: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --modal-bg: rgba(0, 0, 0, 0.85);
+            --shadow: 0 10px 20px rgba(0,0,0,0.5);
+            --border: #333;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- Header & Controls --- */
+        header {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+        }
+
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-family: 'Helvetica Neue', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 1.2rem;
+            transition: color 0.3s;
+            padding: 5px;
+        }
+
+        .icon-btn:hover, .icon-btn.active {
+            color: var(--accent);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--primary);
+            margin: 10px 0;
+            font-weight: normal;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        p.subtitle {
+            color: var(--text);
+            opacity: 0.7;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        /* --- Toggle Switch for Mode --- */
+        .mode-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            font-family: sans-serif;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--primary);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* --- Search Area --- */
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 20px 50px 20px 25px; /* Extra padding right for mic */
+            font-size: 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            outline: none;
+            background-color: var(--input-bg);
+            color: var(--text);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 8px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .mic-btn {
+            position: absolute;
+            right: 130px; /* Positioned before search button */
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text);
+            opacity: 0.5;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .mic-btn:hover, .mic-btn.listening {
+            opacity: 1;
+            color: var(--error);
+        }
+
+        button.search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--primary);
+            color: var(--bg); /* Inverted for contrast */
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+
+        button.search-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* --- Word of the Day --- */
+        .wod-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            animation: fadeIn 1s ease;
+        }
+
+        .wod-label {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .wod-word {
+            font-size: 2rem;
+            color: var(--primary);
+            margin: 0 0 10px 0;
+        }
+
+        .wod-def {
+            font-style: italic;
+            color: var(--text);
+            opacity: 0.8;
+        }
+
+        /* --- Results Grid --- */
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .word-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .word-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .word-card h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+            padding-right: 30px; /* Space for heart */
+        }
+
+        .word-card .pos {
+            font-style: italic;
+            color: var(--text);
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .word-card .short-def {
+            font-size: 0.95rem;
+            color: var(--text);
+            opacity: 0.9;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .word-card .hint {
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: auto;
+            align-self: flex-start;
+        }
+
+        .favorite-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--border); /* Default grey */
+            cursor: pointer;
+            transition: color 0.2s;
+            z-index: 2; /* Above card click */
+        }
+        
+        /* Dark mode border is too dark for unchecked heart, adjust manually */
+        [data-theme="dark"] .favorite-btn { color: #444; }
+
+        .favorite-btn.active {
+            color: var(--error); /* Red heart */
+        }
+
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-content {
+            background: var(--card-bg);
+            color: var(--text);
+            padding: 40px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: none; border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text);
+            opacity: 0.5;
+        }
+
+        .modal-header { border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
+        .modal-word { font-size: 2.5rem; color: var(--primary); margin: 0; }
+        .modal-phonetic { color: var(--text); opacity: 0.6; font-family: sans-serif; margin-top: 10px; font-size: 1.2rem; }
+        
+        .modal-section h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--accent);
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .modal-text { line-height: 1.6; font-size: 1.1rem; }
+
+        .example-text {
+            font-style: italic;
+            color: var(--text);
+            background: var(--input-bg);
+            padding: 15px;
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+        }
+
+        .audio-btn {
+            background: none; border: 2px solid var(--primary); color: var(--primary);
+            border-radius: 50%; width: 40px; height: 40px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; margin-left: 15px; vertical-align: middle; transition: all 0.2s;
+        }
+        .audio-btn:hover { background: var(--primary); color: var(--bg); }
+
+        /* Animation for listening state */
+        .audio-btn.listening {
+            animation: pulse 1.5s infinite;
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .loading, .error { text-align: center; color: var(--text); opacity: 0.7; grid-column: 1/-1; margin-top: 20px; }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .search-container { width: 90%; }
+            .mic-btn { right: 100px; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="top-controls">
+            <button class="icon-btn" id="themeToggle" title="Toggle Noir Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+            <div class="control-group">
+                <button class="icon-btn" onclick="openFavorites()" title="My Collection">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+        </div>
+
+        <h1>The Sophisticator</h1>
+        
+        <div class="mode-toggle-container">
+            <span>Elevate</span>
+            <label class="switch">
+                <input type="checkbox" id="antonymToggle">
+                <span class="slider"></span>
+            </label>
+            <span>Opposite</span>
+        </div>
+
+        <p class="subtitle">Elevate your vocabulary instantly.</p>
+    </header>
+
+    <!-- Word of the Day Section -->
+    <div id="wodArea" class="wod-container">
+        <div class="wod-label">Word of the Day</div>
+        <div id="wodContent" class="loading">Consulting the oracle...</div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="wordInput" placeholder="Type a simple word..." autocomplete="off">
+        <button class="mic-btn" id="micBtn" title="Speak word"><i class="fas fa-microphone"></i></button>
+        <button class="search-btn" onclick="findWords()">Search</button>
+    </div>
+
+    <div id="resultsArea" class="results-container">
+        <!-- Results appear here -->
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModalDirectly()">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Favorites Modal (Reusing structure for simplicity) -->
+    <div id="favModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content">
+            <button class="close-modal" onclick="document.getElementById('favModal').classList.remove('active')">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-word">My Collection</h2>
+            </div>
+            <div id="favList" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Favs go here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State & DOM Elements ---
+        const input = document.getElementById('wordInput');
+        const resultsArea = document.getElementById('resultsArea');
+        const modal = document.getElementById('detailModal');
+        const modalBody = document.getElementById('modalBody');
+        const micBtn = document.getElementById('micBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const antonymToggle = document.getElementById('antonymToggle');
+        const wodArea = document.getElementById('wodArea');
+        const wodContent = document.getElementById('wodContent');
+        const favModal = document.getElementById('favModal');
+        const favList = document.getElementById('favList');
+
+        let isAntonymMode = false;
+        let favorites = JSON.parse(localStorage.getItem('sophisticated_favs')) || [];
+
+        // --- Initialization ---
+        window.onload = () => {
+            loadTheme();
+            loadWordOfTheDay();
+        };
+
+        // --- Event Listeners ---
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') findWords(); });
+        
+        antonymToggle.addEventListener('change', (e) => {
+            isAntonymMode = e.target.checked;
+            const btn = document.querySelector('.search-btn');
+            btn.textContent = isAntonymMode ? "Oppose" : "Elevate";
+            input.placeholder = isAntonymMode ? "Type a word to find its opposite..." : "Type a simple word...";
+        });
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // --- Voice Recognition (Search Bar) ---
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            micBtn.addEventListener('click', () => {
+                micBtn.classList.add('listening');
+                recognition.start();
+            });
+
+            recognition.onresult = (event) => {
+                micBtn.classList.remove('listening');
+                const transcript = event.results[0][0].transcript;
+                input.value = transcript;
+                findWords();
+            };
+
+            recognition.onerror = () => micBtn.classList.remove('listening');
+            recognition.onend = () => micBtn.classList.remove('listening');
+        } else {
+            micBtn.style.display = 'none'; // Hide if not supported
+        }
+
+        // --- Core Logic ---
+
+        async function findWords() {
+            const word = input.value.trim();
+            if (!word) return;
+
+            // Hide Word of the Day when searching
+            wodArea.style.display = 'none';
+            resultsArea.innerHTML = '<div class="loading">Consulting the archives...</div>';
+
+            try {
+                // ml = means like (synonym), rel_ant = antonym
+                const queryParam = isAntonymMode ? `rel_ant=${word}` : `ml=${word}`;
+                const response = await fetch(`https://api.datamuse.com/words?${queryParam}&md=dp&max=20`);
+                const data = await response.json();
+                displayResults(data, word);
+            } catch (error) {
+                resultsArea.innerHTML = '<div class="error">The archives are silent. Try again.</div>';
+            }
+        }
+
+        function displayResults(data, originalWord) {
+            resultsArea.innerHTML = '';
+            if (data.length === 0) {
+                resultsArea.innerHTML = '<div class="error">No results found.</div>';
+                return;
+            }
+
+            const filtered = data.filter(item => item.word.toLowerCase() !== originalWord.toLowerCase());
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                const capWord = item.word.charAt(0).toUpperCase() + item.word.slice(1);
+                
+                // Definition Logic
+                let def = "No definition available.";
+                let pos = "";
+                if (item.defs && item.defs.length > 0) {
+                    const parts = item.defs[0].split('\t');
+                    pos = parts.length > 1 ? formatPOS(parts[0]) : "";
+                    def = parts.length > 1 ? parts[1] : parts[0];
+                }
+
+                // Heart Icon State
+                const isFav = favorites.includes(item.word);
+                const heartClass = isFav ? 'fas fa-heart active' : 'far fa-heart';
+
+                card.innerHTML = `
+                    <button class="favorite-btn" onclick="toggleFavorite(event, '${item.word}')">
+                        <i class="${heartClass}" id="fav-${item.word}"></i>
+                    </button>
+                    <div onclick="showDetails('${item.word}', '${def.replace(/'/g, "\\'")}')" style="flex-grow:1;">
+                        <h2>${capWord}</h2>
+                        <div class="pos">${pos}</div>
+                        <div class="short-def">${def}</div>
+                        <div class="hint">Click for Details</div>
+                    </div>
+                `;
+                resultsArea.appendChild(card);
+            });
+        }
+
+        // --- Favorites System ---
+
+        function toggleFavorite(event, word) {
+            event.stopPropagation(); // Prevent card click
+            const index = favorites.indexOf(word);
+            const icon = document.getElementById(`fav-${word}`);
+
+            if (index === -1) {
+                favorites.push(word);
+                if(icon) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'active');
+                }
+            } else {
+                favorites.splice(index, 1);
+                if(icon) {
+                    icon.classList.remove('fas', 'active');
+                    icon.classList.add('far');
+                }
+            }
+            localStorage.setItem('sophisticated_favs', JSON.stringify(favorites));
+            
+            // If we are in the favorites view, refresh it
+            if(favModal.classList.contains('active')) {
+                renderFavoritesList();
+            }
+        }
+
+        function openFavorites() {
+            favModal.classList.add('active');
+            renderFavoritesList();
+        }
+
+        function renderFavoritesList() {
+            favList.innerHTML = '';
+            if (favorites.length === 0) {
+                favList.innerHTML = '<div style="text-align:center; opacity:0.6">Your collection is empty.</div>';
+                return;
+            }
+            favorites.forEach(word => {
+                const div = document.createElement('div');
+                div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--input-bg); border-radius:8px;";
+                div.innerHTML = `
+                    <span style="font-size:1.2rem; cursor:pointer;" onclick="closeModalDirectly(); showDetails('${word}', '')">
+                        ${word.charAt(0).toUpperCase() + word.slice(1)}
+                    </span>
+                    <button onclick="toggleFavorite(event, '${word}')" style="background:none; border:none; cursor:pointer; color:#e74c3c;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                favList.appendChild(div);
+            });
+        }
+
+        // --- Word of the Day Logic ---
+        async function loadWordOfTheDay() {
+            const sophisticatedWords = [
+                "ephemeral", "serendipity", "petrichor", "ineffable", "sonder", 
+                "limerence", "vellichor", "eloquence", "solitude", "epiphany",
+                "mellifluous", "quintessential", "panacea", "surreptitious", "cacophony"
+            ];
+            const randomWord = sophisticatedWords[Math.floor(Math.random() * sophisticatedWords.length)];
+            
+            try {
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${randomWord}`);
+                const data = await response.json();
+                const entry = data[0];
+                const def = entry.meanings[0].definitions[0].definition;
+                
+                wodContent.innerHTML = `
+                    <h2 class="wod-word" onclick="showDetails('${randomWord}', '${def}')" style="cursor:pointer">${randomWord.charAt(0).toUpperCase() + randomWord.slice(1)}</h2>
+                    <div class="wod-def">${def}</div>
+                `;
+            } catch (e) {
+                wodContent.innerHTML = "Today is a day for silence.";
+            }
+        }
+
+        // --- Details & Pronunciation Coach ---
+        async function showDetails(word, fallbackDef) {
+            modal.classList.add('active');
+            modalBody.innerHTML = '<div class="loading">Fetching details...</div>';
+            
+            favModal.classList.remove('active');
+
+            try {
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                if (!response.ok) throw new Error('Details not found');
+                const data = await response.json();
+                const entry = data[0];
+                
+                let audioUrl = entry.phonetics.find(p => p.audio)?.audio || "";
+                let example = "";
+                for (const m of entry.meanings) {
+                    const ex = m.definitions.find(d => d.example);
+                    if (ex) { example = ex.example; break; }
+                }
+
+                modalBody.innerHTML = `
+                    <div class="modal-header">
+                        <h2 class="modal-word">
+                            ${word.charAt(0).toUpperCase() + word.slice(1)}
+                            ${audioUrl ? `<button class="audio-btn" onclick="new Audio('${audioUrl}').play()"><i class="fas fa-volume-up"></i></button>` : ''}
+                        </h2>
+                        <div class="modal-phonetic">${entry.phonetic || ''}</div>
+                    </div>
+                    <div class="modal-section">
+                        <h3>Definition</h3>
+                        <p class="modal-text">${entry.meanings[0].definitions[0].definition || fallbackDef}</p>
+                    </div>
+                    ${example ? `<div class="modal-section"><h3>Example</h3><p class="example-text">"${example}"</p></div>` : ''}
+                    
+                    <!-- Pronunciation Coach Section -->
+                    <div class="modal-section" style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px;">
+                        <h3>Pronunciation Coach</h3>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <button id="practiceMic" class="audio-btn" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <p id="practiceFeedback" style="font-style: italic; color: var(--text); opacity: 0.9; margin: 0;">
+                                Click the mic and say <strong>"${word}"</strong>
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                // Attach Event Listener for Practice Mic
+                const practiceBtn = document.getElementById('practiceMic');
+                if(practiceBtn) {
+                    practiceBtn.onclick = () => testPronunciation(word);
+                }
+
+            } catch (error) {
+                // Fallback
+                modalBody.innerHTML = `
+                    <div class="modal-header"><h2 class="modal-word">${word}</h2></div>
+                    <div class="modal-section"><p class="modal-text">${fallbackDef}</p></div>
+                    <div class="error">Rich details unavailable.</div>
+                `;
+            }
+        }
+
+        function testPronunciation(targetWord) {
+            const btn = document.getElementById('practiceMic');
+            const feedback = document.getElementById('practiceFeedback');
+
+            if (!('webkitSpeechRecognition' in window)) {
+                feedback.innerText = "Coach unavailable (Browser not supported).";
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            btn.classList.add('listening');
+            feedback.innerText = "Listening...";
+            
+            // Reset Styles
+            btn.style.color = "var(--error)";
+            btn.style.borderColor = "var(--error)";
+
+            recognition.start();
+
+            recognition.onresult = (event) => {
+                const spoken = event.results[0][0].transcript.toLowerCase();
+                const target = targetWord.toLowerCase().replace(/[^a-z]/g, ''); // strip potential punctuation
+                const cleanSpoken = spoken.replace(/[^a-z]/g, '');
+
+                btn.classList.remove('listening');
+
+                if (cleanSpoken === target) {
+                    feedback.innerHTML = `<span style="color: var(--success); font-weight: bold;">Perfect!</span> You said "${spoken}".`;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.style.color = "var(--success)";
+                    btn.style.borderColor = "var(--success)";
+                } else {
+                    feedback.innerHTML = `<span style="color: var(--error);">Try again.</span> I heard "${spoken}".`;
+                    btn.style.color = "var(--error)";
+                    btn.style.borderColor = "var(--error)";
+                }
+            };
+
+            recognition.onerror = () => {
+                btn.classList.remove('listening');
+                feedback.innerText = "I didn't catch that. Try again.";
+                btn.style.color = "var(--primary)";
+                btn.style.borderColor = "var(--primary)";
+            };
+            
+            recognition.onend = () => {
+                btn.classList.remove('listening');
+                // If we didn't get a result or error handled it, ensure visual state is reset if needed
+                if (btn.innerHTML.includes('microphone')) {
+                     btn.style.color = "var(--primary)";
+                     btn.style.borderColor = "var(--primary)";
+                }
+            };
+        }
+
+        function closeModal(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('active');
+            }
+        }
+        function closeModalDirectly() {
+            modal.classList.remove('active');
+            favModal.classList.remove('active');
+        }
+
+        function formatPOS(tag) {
+            const map = {'n':'Noun', 'v':'Verb', 'adj':'Adjective', 'adv':'Adverb'};
+            return map[tag] || tag;
+        }
+
+        // --- Theme Logic ---
+        function toggleTheme() {
+            const body = document.body;
+            const current = body.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('sophisticated_theme', newTheme);
+            themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('sophisticated_theme');
+            if (saved) {
+                document.body.setAttribute('data-theme', saved);
+                themeToggle.innerHTML = saved === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            }
+        }
+    </script>
+</body>
+</html>
