@@ -284,10 +284,10 @@
 
         .word-card .pos {
             font-style: italic;
-            color: var(--text);
-            opacity: 0.6;
-            font-size: 0.9rem;
+            color: var(--accent); /* Highlighted POS color */
+            font-size: 0.95rem;
             margin-bottom: 10px;
+            font-weight: bold;
         }
 
         .word-card .short-def {
@@ -377,8 +377,9 @@
 
         .modal-header { border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
         .modal-word { font-size: 2.5rem; color: var(--primary); margin: 0; }
-        .modal-phonetic { color: var(--text); opacity: 0.6; font-family: sans-serif; margin-top: 10px; font-size: 1.2rem; }
-        
+        .modal-phonetic { color: var(--text); opacity: 0.6; font-family: sans-serif; margin-top: 10px; font-size: 1.2rem; display: flex; align-items: center; gap: 15px; }
+        .modal-pos { color: var(--accent); font-weight: bold; font-style: italic; }
+
         .modal-section h3 {
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -662,6 +663,12 @@
                     def = parts.length > 1 ? parts[1] : parts[0];
                 }
 
+                // Fallback POS finding if defs didn't have it
+                if (!pos && item.tags) {
+                     const posTag = item.tags.find(t => ['n','v','adj','adv','u'].includes(t));
+                     if(posTag) pos = formatPOS(posTag);
+                }
+
                 // Heart Icon State
                 const isFav = favorites.includes(item.word);
                 const heartClass = isFav ? 'fas fa-heart active' : 'far fa-heart';
@@ -809,10 +816,11 @@
                 const data = await response.json();
                 const entry = data[0];
                 const def = entry.meanings[0].definitions[0].definition;
-                
+                const pos = entry.meanings[0].partOfSpeech; // Extract POS for WOD
+
                 wodContent.innerHTML = `
                     <h2 class="wod-word" onclick="showDetails('${randomWord}', '${def}')" style="cursor:pointer">${randomWord.charAt(0).toUpperCase() + randomWord.slice(1)}</h2>
-                    <div class="wod-def">${def}</div>
+                    <div class="wod-def"><span style="color:var(--accent); font-weight:bold; margin-right:5px; text-transform:capitalize;">${pos}</span> ${def}</div>
                 `;
             } catch (e) {
                 wodContent.innerHTML = "Today is a day for silence.";
@@ -832,6 +840,10 @@
                 const data = await response.json();
                 const entry = data[0];
                 
+                // Get part of speech from the first meaning found
+                const mainMeaning = entry.meanings[0];
+                const partOfSpeech = mainMeaning.partOfSpeech;
+                
                 let audioUrl = entry.phonetics.find(p => p.audio)?.audio || "";
                 let example = "";
                 for (const m of entry.meanings) {
@@ -845,11 +857,14 @@
                             ${word.charAt(0).toUpperCase() + word.slice(1)}
                             ${audioUrl ? `<button class="audio-btn" onclick="new Audio('${audioUrl}').play()"><i class="fas fa-volume-up"></i></button>` : ''}
                         </h2>
-                        <div class="modal-phonetic">${entry.phonetic || ''}</div>
+                        <div class="modal-phonetic">
+                            <span class="modal-pos">${partOfSpeech.charAt(0).toUpperCase() + partOfSpeech.slice(1)}</span>
+                            <span>${entry.phonetic || ''}</span>
+                        </div>
                     </div>
                     <div class="modal-section">
                         <h3>Definition</h3>
-                        <p class="modal-text">${entry.meanings[0].definitions[0].definition || fallbackDef}</p>
+                        <p class="modal-text">${mainMeaning.definitions[0].definition || fallbackDef}</p>
                     </div>
                     ${example ? `<div class="modal-section"><h3>Example</h3><p class="example-text">"${example}"</p></div>` : ''}
                     
@@ -953,7 +968,7 @@
         }
 
         function formatPOS(tag) {
-            const map = {'n':'Noun', 'v':'Verb', 'adj':'Adjective', 'adv':'Adverb'};
+            const map = {'n':'Noun', 'v':'Verb', 'adj':'Adjective', 'adv':'Adverb', 'u':'Unknown'};
             return map[tag] || tag;
         }
 
